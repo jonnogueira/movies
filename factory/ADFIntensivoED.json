@@ -1,0 +1,9 @@
+{
+	"name": "ADFIntensivoED",
+	"location": "brazilsouth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "3b24ce19-c351-494e-a921-ae77802535a7",
+		"tenantId": "c1bb61d9-5611-467e-83b8-2e5766e179b1"
+	}
+}

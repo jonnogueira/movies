@@ -1,0 +1,98 @@
+{
+	"name": "HO_DF_Movies",
+	"properties": {
+		"folder": {
+			"name": "Transf_Movies"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "MoviesDB",
+						"type": "DatasetReference"
+					},
+					"name": "MoviesDL"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "MoviesDL",
+						"type": "DatasetReference"
+					},
+					"name": "MoviesDL1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SelectCorrecaoNome"
+				},
+				{
+					"name": "MoviesAcima1950"
+				},
+				{
+					"name": "DerivadaFirstGenre"
+				},
+				{
+					"name": "RankMoviesByRating"
+				},
+				{
+					"name": "AggregateRating"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          movie as string,",
+				"          title as string,",
+				"          genres as string,",
+				"          year as string,",
+				"          Rating as string,",
+				"          {Rotton Tomato} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MoviesDL",
+				"MoviesDL select(mapColumn(",
+				"          movie,",
+				"          title,",
+				"          genres,",
+				"          year,",
+				"          Rating,",
+				"          {Rotten Tomatoes} = {Rotton Tomato}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectCorrecaoNome",
+				"SelectCorrecaoNome filter(toInteger(year) > 1950) ~> MoviesAcima1950",
+				"MoviesAcima1950 derive(FirstGenre = iif(locate('|', genres) >1, left(genres, locate('|', genres) -1), genres)) ~> DerivadaFirstGenre",
+				"DerivadaFirstGenre window(over(FirstGenre,",
+				"          year),",
+				"     asc({Rotten Tomatoes}, true),",
+				"     RatingRank = rank()) ~> RankMoviesByRating",
+				"RankMoviesByRating aggregate(groupBy(FirstGenre,",
+				"          year),",
+				"     AverageRating = avg(toInteger({Rotten Tomatoes})),",
+				"          HightestRated = first(title),",
+				"          LowerRated = last(title),",
+				"          NumberOfMovies = count()) ~> AggregateRating",
+				"AggregateRating sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          movie as string,",
+				"          title as string,",
+				"          genres as string,",
+				"          year as string,",
+				"          Rating as string,",
+				"          {Rotton Tomato} as string",
+				"     ),",
+				"     partitionFileNames:['MoviesDLFinal.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> MoviesDL1"
+			]
+		}
+	}
+}

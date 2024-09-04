@@ -1,0 +1,35 @@
+{
+	"name": "DTF_Transf_Movies",
+	"properties": {
+		"folder": {
+			"name": "Transf_Movies"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_Movies",
+						"type": "DatasetReference"
+					},
+					"name": "DTFTransfMovies"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          movie as string,",
+				"          title as string,",
+				"          genres as string,",
+				"          year as string,",
+				"          Rating as string,",
+				"          {Rotton Tomato} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> DTFTransfMovies"
+			]
+		}
+	}
+}
